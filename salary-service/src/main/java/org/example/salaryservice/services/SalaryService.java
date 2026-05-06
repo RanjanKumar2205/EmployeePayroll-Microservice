@@ -1,6 +1,7 @@
 package org.example.salaryservice.services;
 
 import jakarta.validation.Valid;
+import org.example.salaryservice.dtos.EmployeeResponseDto;
 import org.example.salaryservice.dtos.SalaryRequestDto;
 import org.example.salaryservice.dtos.SalaryResponseDto;
 import org.example.salaryservice.entities.SalaryStructure;
@@ -8,8 +9,11 @@ import org.example.salaryservice.exceptions.DuplicateResourceException;
 import org.example.salaryservice.exceptions.ResourceNotFoundException;
 import org.example.salaryservice.mappers.SalaryMapper;
 import org.example.salaryservice.repositories.SalaryRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -19,10 +23,15 @@ public class SalaryService {
 
     private final SalaryRepository salaryRepository;
     private final SalaryMapper salaryMapper;
+    private final RestTemplate restTemplate;
 
-    public SalaryService(SalaryRepository salaryRepository, SalaryMapper salaryMapper) {
+    @Value("${services.employee-service.base-url}")
+    private String employeeServiceUrl;
+
+    public SalaryService(SalaryRepository salaryRepository, SalaryMapper salaryMapper, RestTemplate restTemplate) {
         this.salaryRepository = salaryRepository;
         this.salaryMapper = salaryMapper;
+        this.restTemplate = restTemplate;
     }
 
     public List<SalaryResponseDto> getAll() {
@@ -43,6 +52,7 @@ public class SalaryService {
 
     @Transactional
     public SalaryResponseDto addSalary(@Valid SalaryRequestDto dto) {
+        if(getEmployeeById(dto.getEmployeeId()) == null) {throw new ResourceNotFoundException("Employee not found with id " + dto.getEmployeeId());}
         salaryRepository.findByEmployeeIdAndIsActiveTrue(dto.getEmployeeId())
                 .ifPresent(s -> {
                     throw new DuplicateResourceException(
@@ -71,5 +81,14 @@ public class SalaryService {
     private SalaryStructure findById(Long id) {
         return salaryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Salary not found: " + id));
+    }
+
+    public EmployeeResponseDto getEmployeeById(Long id) {
+        String url = employeeServiceUrl + "/" + id;
+        try{
+            return restTemplate.getForObject(url, EmployeeResponseDto.class);
+        } catch (HttpClientErrorException e) {
+            throw new ResourceNotFoundException("Employee not found: " + id);
+        }
     }
 }
