@@ -10,7 +10,6 @@ import java.time.LocalDate;
 @Component
 public class SalaryMapper {
 
-    /** Maps a request DTO to a new (unsaved) SalaryStructure entity. */
     public SalaryStructure toEntity(SalaryRequestDto dto) {
         return SalaryStructure.builder()
                 .employeeId(dto.getEmployeeId())
@@ -27,27 +26,26 @@ public class SalaryMapper {
                 .build();
     }
 
-    /** Maps a persisted SalaryStructure entity to its response DTO. */
     public SalaryResponseDto toResponse(SalaryStructure s) {
-        SalaryResponseDto dto = new SalaryResponseDto();
-        dto.setId(s.getId());
-        dto.setEmployeeId(s.getEmployeeId());
-        dto.setBasicSalary(s.getBasicSalary());
-        dto.setHra(s.getHra());
-        dto.setSpecialAllowance(s.getSpecialAllowance());
-        dto.setPfEmployee(s.getPfEmployee());
-        dto.setPfEmployer(s.getPfEmployer());
-        dto.setProfessionalTax(s.getProfessionalTax());
-        dto.setTds(s.getTds());
-        dto.setEffectiveFrom(s.getEffectiveFrom());
-        dto.setEffectiveTo(s.getEffectiveTo());
-        dto.setActive(s.isActive());
-
         double gross = nullSafeSum(s.getBasicSalary(), s.getHra(), s.getSpecialAllowance());
         double deductions = nullSafeSum(s.getPfEmployee(), s.getProfessionalTax(), s.getTds());
-        dto.setGrossSalary(gross);
-        dto.setNetSalary(gross - deductions);
-        return dto;
+
+        return SalaryResponseDto.builder()
+                .id(s.getId())
+                .employeeId(s.getEmployeeId())
+                .basicSalary(s.getBasicSalary())
+                .hra(s.getHra())
+                .specialAllowance(s.getSpecialAllowance())
+                .pfEmployee(s.getPfEmployee())
+                .pfEmployer(s.getPfEmployer())
+                .professionalTax(s.getProfessionalTax())
+                .tds(s.getTds())
+                .effectiveFrom(s.getEffectiveFrom())
+                .effectiveTo(s.getEffectiveTo())
+                .isActive(s.isActive())
+                .grossSalary(gross)
+                .netSalary(gross - deductions)
+                .build();
     }
 
     private double nullSafeSum(Double... values) {

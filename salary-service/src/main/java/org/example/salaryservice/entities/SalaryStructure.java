@@ -5,13 +5,6 @@ import lombok.*;
 
 import java.time.LocalDate;
 
-/**
- * Salary structure record.
- *
- * employeeId is a LOGICAL reference to the employee-service — there is
- * no physical database FK because the two services own separate schemas.
- * Cross-service lookups are done via REST.
- */
 @Entity
 @Getter
 @Setter
