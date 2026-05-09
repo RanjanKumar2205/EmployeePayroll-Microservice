@@ -8,12 +8,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class EmployeeMapper {
 
-    /**
-     * Maps a validated request DTO to a new (unsaved) Employee entity.
-     * Relational fields (department, manager) are resolved by the service
-     * because they require repository lookups; this method sets only the
-     * scalar fields that come directly from the DTO.
-     */
     public Employee toEntity(EmployeeRequestDto dto) {
         return Employee.builder()
                 .firstName(dto.getFirstName())
@@ -27,10 +21,6 @@ public class EmployeeMapper {
                 .build();
     }
 
-    /**
-     * Applies scalar fields from the request DTO onto an existing entity
-     * (used for PUT updates). Relational fields are handled by the service.
-     */
     public void updateEntity(Employee target, EmployeeRequestDto dto) {
         target.setFirstName(dto.getFirstName());
         target.setLastName(dto.getLastName());
@@ -42,7 +32,6 @@ public class EmployeeMapper {
         target.setEmployeeCode(dto.getEmployeeCode());
     }
 
-    /** Maps a persisted Employee entity to its response DTO. */
     public EmployeeResponseDto toResponse(Employee emp) {
         EmployeeResponseDto dto = new EmployeeResponseDto();
         dto.setId(emp.getId());
