@@ -45,10 +45,6 @@ public class NotificationService {
         return notificationMapper.toResponse(findById(id));
     }
 
-    /**
-     * Persist the notification and immediately attempt a simulated send.
-     * In a real system this would publish to a queue (Kafka / RabbitMQ).
-     */
     @Transactional
     public NotificationResponseDto send(NotificationRequestDto dto) {
         Notification n = notificationRepository.save(notificationMapper.toEntity(dto));

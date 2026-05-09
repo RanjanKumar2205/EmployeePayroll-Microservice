@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class NotificationMapper {
 
-    /** Maps a request DTO to a new (unsaved) Notification entity. */
     public Notification toEntity(NotificationRequestDto dto) {
         return Notification.builder()
                 .recipientId(dto.getRecipientId())
@@ -19,18 +18,17 @@ public class NotificationMapper {
                 .build();
     }
 
-    /** Maps a persisted Notification entity to its response DTO. */
     public NotificationResponseDto toResponse(Notification n) {
-        NotificationResponseDto dto = new NotificationResponseDto();
-        dto.setId(n.getId());
-        dto.setRecipientId(n.getRecipientId());
-        dto.setRecipientEmail(n.getRecipientEmail());
-        dto.setSubject(n.getSubject());
-        dto.setMessage(n.getMessage());
-        dto.setChannel(n.getChannel());
-        dto.setStatus(n.getStatus());
-        dto.setCreatedAt(n.getCreatedAt());
-        dto.setSentAt(n.getSentAt());
-        return dto;
+        return NotificationResponseDto.builder()
+                .id(n.getId())
+                .recipientId(n.getRecipientId())
+                .recipientEmail(n.getRecipientEmail())
+                .subject(n.getSubject())
+                .message(n.getMessage())
+                .channel(n.getChannel())
+                .status(n.getStatus())
+                .createdAt(n.getCreatedAt())
+                .sentAt(n.getSentAt())
+                .build();
     }
 }
