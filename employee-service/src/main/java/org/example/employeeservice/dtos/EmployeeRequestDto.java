@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import org.example.employeeservice.entities.EmployeeType;
+import org.example.employeeservice.validators.ContactNumber;
 
 import java.time.LocalDate;
 
@@ -15,6 +16,7 @@ public class EmployeeRequestDto {
     private String lastName;
     @Email @NotBlank
     private String email;
+    @ContactNumber @NotBlank
     private String phoneNumber;
     private LocalDate dateOfJoining;
     private String designation;

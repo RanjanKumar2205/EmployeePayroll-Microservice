@@ -1,5 +1,6 @@
 package org.example.employeeservice.mappers;
 
+import org.example.employeeservice.utils.GlobalConstantUtil;
 import org.example.employeeservice.dtos.EmployeeRequestDto;
 import org.example.employeeservice.dtos.EmployeeResponseDto;
 import org.example.employeeservice.entities.Employee;
@@ -33,18 +34,19 @@ public class EmployeeMapper {
     }
 
     public EmployeeResponseDto toResponse(Employee emp) {
-        EmployeeResponseDto dto = new EmployeeResponseDto();
-        dto.setId(emp.getId());
-        dto.setEmployeeCode(emp.getEmployeeCode());
-        dto.setFirstName(emp.getFirstName());
-        dto.setLastName(emp.getLastName());
-        dto.setEmail(emp.getEmail());
-        dto.setPhoneNumber(emp.getPhoneNumber());
-        dto.setDateOfJoining(emp.getDateOfJoining());
-        dto.setDesignation(emp.getDesignation());
-        dto.setEmployeeType(emp.getEmployeeType());
-        dto.setStatus(emp.getStatus());
-        dto.setCreatedAt(emp.getCreatedAt());
+        EmployeeResponseDto dto = EmployeeResponseDto.builder()
+                .id(emp.getId())
+                .employeeCode(emp.getEmployeeCode())
+                .firstName(emp.getFirstName())
+                .lastName(emp.getLastName())
+                .email(emp.getEmail())
+                .phoneNumber(emp.getPhoneNumber())
+                .dateOfJoining(emp.getDateOfJoining())
+                .designation(emp.getDesignation())
+                .employeeType(emp.getEmployeeType())
+                .status(emp.getStatus())
+                .createdAt(emp.getCreatedAt())
+                .build();
 
         if (emp.getDepartment() != null) {
             dto.setDepartmentId(emp.getDepartment().getId());
@@ -52,7 +54,7 @@ public class EmployeeMapper {
         }
         if (emp.getManager() != null) {
             dto.setManagerId(emp.getManager().getId());
-            dto.setManagerName(emp.getManager().getFirstName() + " " + emp.getManager().getLastName());
+            dto.setManagerName(emp.getManager().getFirstName() + GlobalConstantUtil.SPACE + emp.getManager().getLastName());
         }
         return dto;
     }

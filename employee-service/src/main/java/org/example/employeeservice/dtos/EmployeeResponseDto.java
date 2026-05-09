@@ -1,5 +1,6 @@
 package org.example.employeeservice.dtos;
 
+import lombok.Builder;
 import lombok.Data;
 import org.example.employeeservice.entities.EmployeeType;
 import org.example.employeeservice.entities.Status;
@@ -7,6 +8,7 @@ import org.example.employeeservice.entities.Status;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+@Builder
 @Data
 public class EmployeeResponseDto {
     private Long id;
