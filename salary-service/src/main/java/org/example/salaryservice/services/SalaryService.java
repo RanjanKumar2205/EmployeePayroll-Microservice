@@ -7,6 +7,7 @@ import org.example.salaryservice.dtos.SalaryResponseDto;
 import org.example.salaryservice.entities.SalaryStructure;
 import org.example.salaryservice.exceptions.DuplicateResourceException;
 import org.example.salaryservice.exceptions.ResourceNotFoundException;
+import org.example.salaryservice.feign.EmployeeClient;
 import org.example.salaryservice.mappers.SalaryMapper;
 import org.example.salaryservice.repositories.SalaryRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,15 +24,16 @@ public class SalaryService {
 
     private final SalaryRepository salaryRepository;
     private final SalaryMapper salaryMapper;
-    private final RestTemplate restTemplate;
+//    private final RestTemplate restTemplate;
+    private final EmployeeClient employeeClient;
 
-    @Value("${services.employee-service.base-url}")
-    private String employeeServiceUrl;
+//    @Value("${services.employee-service.base-url}")
+//    private String employeeServiceUrl;
 
-    public SalaryService(SalaryRepository salaryRepository, SalaryMapper salaryMapper, RestTemplate restTemplate) {
+    public SalaryService(SalaryRepository salaryRepository, SalaryMapper salaryMapper, EmployeeClient employeeClient) {
         this.salaryRepository = salaryRepository;
         this.salaryMapper = salaryMapper;
-        this.restTemplate = restTemplate;
+        this.employeeClient = employeeClient;
     }
 
     public List<SalaryResponseDto> getAll() {
@@ -84,11 +86,6 @@ public class SalaryService {
     }
 
     public EmployeeResponseDto getEmployeeById(Long id) {
-        String url = employeeServiceUrl + "/" + id;
-        try{
-            return restTemplate.getForObject(url, EmployeeResponseDto.class);
-        } catch (HttpClientErrorException e) {
-            throw new ResourceNotFoundException("Employee not found: " + id);
-        }
+        return employeeClient.getById(id).getBody();
     }
 }
