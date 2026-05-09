@@ -10,11 +10,8 @@ import org.example.salaryservice.exceptions.ResourceNotFoundException;
 import org.example.salaryservice.feign.EmployeeClient;
 import org.example.salaryservice.mappers.SalaryMapper;
 import org.example.salaryservice.repositories.SalaryRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -24,11 +21,7 @@ public class SalaryService {
 
     private final SalaryRepository salaryRepository;
     private final SalaryMapper salaryMapper;
-//    private final RestTemplate restTemplate;
     private final EmployeeClient employeeClient;
-
-//    @Value("${services.employee-service.base-url}")
-//    private String employeeServiceUrl;
 
     public SalaryService(SalaryRepository salaryRepository, SalaryMapper salaryMapper, EmployeeClient employeeClient) {
         this.salaryRepository = salaryRepository;
