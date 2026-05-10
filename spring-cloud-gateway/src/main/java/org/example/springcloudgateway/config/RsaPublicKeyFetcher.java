@@ -14,19 +14,6 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Base64;
 
-/**
- * Fetches the RSA public key from auth-service's JWKS endpoint once at startup
- * and exposes it as a bean that JwtVerifier uses on every request.
- *
- * Why this is safe and scalable:
- * - The fetch happens ONCE — not per request. No per-request I/O to auth-service.
- * - The public key can only VERIFY signatures, never create them.
- *   Even if an attacker reads gateway memory, they cannot forge tokens.
- * - No shared secret — the private key never leaves auth-service.
- *
- * Production note: add retry logic and refresh on signature verification failure
- * to handle auth-service restarts (which generate a new key pair).
- */
 @Configuration
 public class RsaPublicKeyFetcher {
 
@@ -36,8 +23,6 @@ public class RsaPublicKeyFetcher {
     public RSAPublicKey rsaPublicKey(ApplicationGatewayProperties props) throws Exception {
         log.info("Fetching RSA public key from JWKS endpoint: {}", props.getJwksUri());
 
-        // Blocking call is acceptable here — this is startup initialization,
-        // not a request-time operation. Spring's reactive context isn't active yet.
         String jwksJson = WebClient.create()
                 .get()
                 .uri(props.getJwksUri())
@@ -50,7 +35,6 @@ public class RsaPublicKeyFetcher {
                     "Empty JWKS response from auth-service at: " + props.getJwksUri());
         }
 
-        // Parse the JWKS response and extract n (modulus) and e (exponent)
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(jwksJson);
         JsonNode firstKey = root.get("keys").get(0);

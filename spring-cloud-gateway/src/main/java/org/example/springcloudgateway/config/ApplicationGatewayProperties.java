@@ -6,12 +6,6 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Binds gateway.* properties from application-dev.properties.
- *
- * gateway.jwks-uri    — URL of auth-service's JWKS endpoint (fetched once at startup)
- * gateway.public-paths — comma-separated paths that bypass JWT validation
- */
 @Component
 @ConfigurationProperties(prefix = "gateway")
 public class ApplicationGatewayProperties {

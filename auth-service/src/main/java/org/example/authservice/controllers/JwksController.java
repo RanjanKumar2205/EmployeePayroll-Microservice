@@ -10,15 +10,6 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Publishes the RSA public key in JWKS (JSON Web Key Set) format.
- *
- * The gateway fetches GET /api/v1/auth/.well-known/jwks.json once at startup
- * and caches the public key. It then verifies every JWT locally using that key —
- * no shared secret, no per-request call to auth-service.
- *
- * This endpoint is public (no JWT required) — see SecurityConfig.
- */
 @RestController
 @RequestMapping("/api/v1/auth/.well-known")
 public class JwksController {
@@ -29,20 +20,6 @@ public class JwksController {
         this.jwtService = jwtService;
     }
 
-    /**
-     * Returns the public key as a standard JWKS document.
-     *
-     * Response shape:
-     * {
-     *   "keys": [{
-     *     "kty": "RSA",
-     *     "use": "sig",
-     *     "alg": "RS256",
-     *     "n":   "<base64url-encoded modulus>",
-     *     "e":   "<base64url-encoded exponent>"
-     *   }]
-     * }
-     */
     @GetMapping("/jwks.json")
     public Map<String, Object> jwks() {
         RSAPublicKey publicKey = jwtService.getPublicKey();

@@ -14,30 +14,24 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponseDto> handleNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
-        ErrorResponseDto error = ErrorResponseDto.builder()
-                .message(ex.getMessage())
-                .status(HttpStatus.NOT_FOUND.value())
-                .timestamp(LocalDateTime.now())
-                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
-                .path(request.getRequestURI())
-                .build();
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        return response(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleGeneric(Exception ex, HttpServletRequest request) {
+        ex.printStackTrace();
+        return response(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), request);
+    }
+
+    private ResponseEntity<ErrorResponseDto> response(HttpStatus status, String message, HttpServletRequest request) {
         ErrorResponseDto error = ErrorResponseDto.builder()
-                .message(ex.getMessage())
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .message(message)
+                .status(status.value())
                 .timestamp(LocalDateTime.now())
-                .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
+                .error(status.getReasonPhrase())
                 .path(request.getRequestURI())
                 .build();
 
-        //TODO: Add logging instead of this
-        ex.printStackTrace();
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        return ResponseEntity.status(status).body(error);
     }
 }

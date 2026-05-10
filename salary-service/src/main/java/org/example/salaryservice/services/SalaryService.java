@@ -7,7 +7,6 @@ import org.example.salaryservice.dtos.SalaryResponseDto;
 import org.example.salaryservice.entities.SalaryStructure;
 import org.example.salaryservice.exceptions.DuplicateResourceException;
 import org.example.salaryservice.exceptions.ResourceNotFoundException;
-import org.example.salaryservice.feign.EmployeeClient;
 import org.example.salaryservice.mappers.SalaryMapper;
 import org.example.salaryservice.repositories.SalaryRepository;
 import org.springframework.stereotype.Service;
@@ -21,12 +20,12 @@ public class SalaryService {
 
     private final SalaryRepository salaryRepository;
     private final SalaryMapper salaryMapper;
-    private final EmployeeClient employeeClient;
+    private final EmployeeClientService employeeClientService;
 
-    public SalaryService(SalaryRepository salaryRepository, SalaryMapper salaryMapper, EmployeeClient employeeClient) {
+    public SalaryService(SalaryRepository salaryRepository, SalaryMapper salaryMapper, EmployeeClientService employeeClientService) {
         this.salaryRepository = salaryRepository;
         this.salaryMapper = salaryMapper;
-        this.employeeClient = employeeClient;
+        this.employeeClientService = employeeClientService;
     }
 
     public List<SalaryResponseDto> getAll() {
@@ -45,7 +44,6 @@ public class SalaryService {
         return salaryMapper.toResponse(findById(id));
     }
 
-    @Transactional
     public SalaryResponseDto addSalary(@Valid SalaryRequestDto dto) {
         if(getEmployeeById(dto.getEmployeeId()) == null) {throw new ResourceNotFoundException("Employee not found with id " + dto.getEmployeeId());}
         salaryRepository.findByEmployeeIdAndIsActiveTrue(dto.getEmployeeId())
@@ -79,6 +77,6 @@ public class SalaryService {
     }
 
     public EmployeeResponseDto getEmployeeById(Long id) {
-        return employeeClient.getById(id).getBody();
+        return employeeClientService.getEmployee(id);
     }
 }

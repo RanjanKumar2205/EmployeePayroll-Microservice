@@ -7,12 +7,6 @@ import org.springframework.stereotype.Component;
 
 import java.security.interfaces.RSAPublicKey;
 
-/**
- * Stateless JWT verifier using the cached RSA public key.
- *
- * Replaces the old JwtUtil that used a shared HMAC secret.
- * Verification is pure CPU — no I/O, no DB, no auth-service call.
- */
 @Component
 public class JwtVerifier {
 
@@ -22,10 +16,6 @@ public class JwtVerifier {
         this.publicKey = publicKey;
     }
 
-    /**
-     * Returns true if the token has a valid RS256 signature and is not expired.
-     * False on any JwtException (tampered, expired, malformed).
-     */
     public boolean isValid(String token) {
         try {
             getClaims(token);
