@@ -10,13 +10,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-/**
- * Global post-filter that logs every routed request with method, path,
- * downstream service, response status, and latency.
- *
- * Runs at HIGHEST_PRECEDENCE + 1 so it wraps the JWT filter and captures
- * both allowed and rejected requests in the log.
- */
 @Component
 public class LoggingFilter implements GlobalFilter, Ordered {
 
@@ -45,7 +38,6 @@ public class LoggingFilter implements GlobalFilter, Ordered {
 
     @Override
     public int getOrder() {
-        // Just after JWT filter so both allowed and rejected calls are logged
         return Ordered.HIGHEST_PRECEDENCE + 1;
     }
 }

@@ -3,22 +3,29 @@ package org.example.springcloudgateway.config;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Base64;
+import java.security.interfaces.RSAPublicKey;
 
+/**
+ * Stateless JWT verifier using the cached RSA public key.
+ *
+ * Replaces the old JwtUtil that used a shared HMAC secret.
+ * Verification is pure CPU — no I/O, no DB, no auth-service call.
+ */
 @Component
-public class JwtUtil {
-    private final SecretKey signingKey;
+public class JwtVerifier {
 
-    public JwtUtil(JwtProperties props) {
-        this.signingKey = Keys.hmacShaKeyFor(Arrays.toString(Base64.getDecoder().decode(props.getSecret())).getBytes(StandardCharsets.UTF_8));
+    private final RSAPublicKey publicKey;
+
+    public JwtVerifier(RSAPublicKey publicKey) {
+        this.publicKey = publicKey;
     }
 
+    /**
+     * Returns true if the token has a valid RS256 signature and is not expired.
+     * False on any JwtException (tampered, expired, malformed).
+     */
     public boolean isValid(String token) {
         try {
             getClaims(token);
@@ -38,7 +45,7 @@ public class JwtUtil {
 
     private Claims getClaims(String token) {
         return Jwts.parser()
-                .verifyWith(signingKey)
+                .verifyWith(publicKey)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
