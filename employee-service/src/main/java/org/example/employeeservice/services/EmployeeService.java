@@ -82,6 +82,9 @@ public class EmployeeService {
     @Transactional
     public void deactivateEmployee(Long id) {
         Employee emp = findById(id);
+        if(Status.INACTIVE.equals(emp.getStatus())) {
+            throw new ResourceNotFoundException("Employee not found: " + id);
+        }
         emp.setStatus(Status.INACTIVE);
         employeeRepository.save(emp);
     }
