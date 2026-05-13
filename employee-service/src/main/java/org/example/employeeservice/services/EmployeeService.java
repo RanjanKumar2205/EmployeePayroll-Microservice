@@ -1,6 +1,7 @@
 package org.example.employeeservice.services;
 
 import jakarta.validation.Valid;
+import org.example.employeeservice.dtos.EmployeeCreatedEvent;
 import org.example.employeeservice.dtos.EmployeeRequestDto;
 import org.example.employeeservice.dtos.EmployeeResponseDto;
 import org.example.employeeservice.entities.Department;
@@ -12,22 +13,27 @@ import org.example.employeeservice.repositories.DepartmentRepository;
 import org.example.employeeservice.repositories.EmployeeRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+
 @Service
 public class EmployeeService {
-
+    private final KafkaTemplate<String, EmployeeCreatedEvent> kafkaTemplate;
     private final EmployeeRepository employeeRepository;
     private final DepartmentRepository departmentRepository;
     private final EmployeeMapper employeeMapper;
 
     public EmployeeService(EmployeeRepository employeeRepository,
                            DepartmentRepository departmentRepository,
-                           EmployeeMapper employeeMapper) {
+                           EmployeeMapper employeeMapper,
+                           KafkaTemplate<String, EmployeeCreatedEvent> kafkaTemplate) {
         this.employeeRepository = employeeRepository;
         this.departmentRepository = departmentRepository;
         this.employeeMapper = employeeMapper;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     public Page<EmployeeResponseDto> getAllEmployees(Pageable pageable) {
@@ -52,7 +58,18 @@ public class EmployeeService {
             emp.setManager(findById(dto.getManagerId()));
         }
 
-        return employeeMapper.toResponse(employeeRepository.save(emp));
+        Employee savedEmployee = employeeRepository.save(emp);
+
+        EmployeeCreatedEvent event = new EmployeeCreatedEvent(
+                savedEmployee.getId(),
+                savedEmployee.getName(),
+                savedEmployee.getEmail(),
+                Instant.now()
+        );
+
+        kafkaTemplate.send("employee-created", event);
+
+        return employeeMapper.toResponse(savedEmployee);
     }
 
     @Transactional

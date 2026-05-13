@@ -57,4 +57,8 @@ public class Employee {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manager_id")
     private Employee manager;
+
+    public String getName() {
+        return firstName + " " + lastName;
+    }
 }
