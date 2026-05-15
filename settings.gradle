@@ -1,0 +1,8 @@
+rootProject.name = "employee-payroll-microservices"
+
+include("auth-service",
+        "employee-service",
+        "eureka-server",
+        "notification-service",
+        "salary-service",
+        "spring-cloud-gateway")

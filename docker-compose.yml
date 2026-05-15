@@ -2,19 +2,25 @@ services:
 
   # ─── Infrastructure ───────────────────────────────────────────────────────────
 
+  zipkin:
+    image: openzipkin/zipkin:${TAG:-latest}
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+
   mysql:
     image: mysql:8.0
     container_name: mysql
     ports:
-      - "3306:3306"
+      - "3307:${DB_PORT}"
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      # MYSQL_USER: ${DB_USERNAME}
+      MYSQL_USER: ${DB_USERNAME}
       MYSQL_DATABASE: employee_service
     volumes:
       - mysql-data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USERNAME}", "-p${DB_PASSWORD}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "${DB_HOST:-mysql}", "-u", "${DB_USERNAME}", "-p${DB_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,6 +31,11 @@ services:
     ports:
       - "6380:6379"
     command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
@@ -58,7 +69,12 @@ services:
     ports:
       - "8761:8761"
     environment:
-      SPRING_PROFILES_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: ${PROFILE}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "${PROTOCOL}://eureka-server:${EUREKA_PORT}${HEALTH_PATH}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   auth-service:
     build:
@@ -68,9 +84,9 @@ services:
     ports:
       - "8085:8085"
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      DB_HOST: mysql
-      DB_PORT: 3306
+      SPRING_PROFILES_ACTIVE: ${PROFILE}
+      DB_HOST: ${DB_HOST:-mysql}
+      DB_PORT: ${DB_PORT:-3306}
       DB_TIMEZONE: ${DB_TIMEZONE:-Asia/Kolkata}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
@@ -78,11 +94,19 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-3600000}
       EUREKA_URL: http://eureka-server:8761/eureka/
+      ZIPKIN_URL: http://zipkin:9411
     depends_on:
       mysql:
         condition: service_healthy
       eureka-server:
+        condition: service_healthy
+      zipkin:
         condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "${PROTOCOL}://auth-service:${AUTH_PORT}${HEALTH_PATH}"]
+      interval: 20s
+      timeout: 5s
+      retries: 15
 
   spring-cloud-gateway:
     build:
@@ -92,14 +116,17 @@ services:
     ports:
       - "8090:8090"
     environment:
-      SPRING_PROFILES_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: ${PROFILE}
       EUREKA_URL: http://eureka-server:8761/eureka/
-      AUTH_SERVICE_URL: http://auth-service:8085
+      AUTH_SERVICE_URL: http://auth-service:${AUTH_PORT:-8085}
+      ZIPKIN_URL: http://zipkin:9411
     depends_on:
       eureka-server:
+        condition: service_healthy
+      zipkin:
         condition: service_started
       auth-service:
-        condition: service_started
+        condition: service_healthy
 
   employee-service:
     build:
@@ -109,20 +136,23 @@ services:
     ports:
       - "8081:8081"
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      DB_HOST: mysql
-      DB_PORT: 3306
+      SPRING_PROFILES_ACTIVE: ${PROFILE}
+      DB_HOST: ${DB_HOST:-mysql}
+      DB_PORT: ${DB_PORT:-3306}
       DB_TIMEZONE: ${DB_TIMEZONE:-Asia/Kolkata}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       EUREKA_URL: http://eureka-server:8761/eureka/
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      ZIPKIN_URL: http://zipkin:9411
     depends_on:
       mysql:
         condition: service_healthy
       kafka:
         condition: service_started
       eureka-server:
+        condition: service_healthy
+      zipkin:
         condition: service_started
 
   salary-service:
@@ -133,17 +163,20 @@ services:
     ports:
       - "8082:8082"
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      DB_HOST: mysql
-      DB_PORT: 3306
+      SPRING_PROFILES_ACTIVE: ${PROFILE}
+      DB_HOST: ${DB_HOST:-mysql}
+      DB_PORT: ${DB_PORT:-3306}
       DB_TIMEZONE: ${DB_TIMEZONE:-Asia/Kolkata}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       EUREKA_URL: http://eureka-server:8761/eureka/
+      ZIPKIN_URL: http://zipkin:9411
     depends_on:
       mysql:
         condition: service_healthy
       eureka-server:
+        condition: service_healthy
+      zipkin:
         condition: service_started
 
   notification-service:
@@ -154,20 +187,23 @@ services:
     ports:
       - "8083:8083"
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      DB_HOST: mysql
-      DB_PORT: 3306
+      SPRING_PROFILES_ACTIVE: ${PROFILE}
+      DB_HOST: ${DB_HOST:-mysql}
+      DB_PORT: ${DB_PORT:-3306}
       DB_TIMEZONE: ${DB_TIMEZONE:-Asia/Kolkata}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       EUREKA_URL: http://eureka-server:8761/eureka/
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      ZIPKIN_URL: http://zipkin:9411
     depends_on:
       mysql:
         condition: service_healthy
       kafka:
         condition: service_started
       eureka-server:
+        condition: service_healthy
+      zipkin:
         condition: service_started
 
 volumes:
